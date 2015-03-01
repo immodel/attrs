@@ -20,5 +20,10 @@
   "bugs": {
     "url": "https://github.com/immodel/attrs/issues"
   },
-  "homepage": "https://github.com/immodel/attrs"
+  "homepage": "https://github.com/immodel/attrs",
+  "devDependencies": {
+    "chai": "^2.1.0",
+    "mocha": "^2.1.0",
+    "immodel": "git://github.com/immodel/immodel"
+  }
 }
