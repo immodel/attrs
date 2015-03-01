@@ -1,5 +1,3 @@
-var _ = require('lodash');
-
 module.exports = function(model) {
   model.attrs = model.attrs || {};
   
@@ -50,5 +48,6 @@ function coerce(model, opts) {
     : model.lookup(opts.type);
   
   if(! type) throw new Error('type "' + opts.type + '" has not been registered');
-  return type.use(_.omit(opts, 'type'));
+  delete opts.type;
+  return type.use(opts);
 }
