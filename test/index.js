@@ -1,5 +1,6 @@
 var assert = require('assert');
-var model = require('immodel').bootstrap({attrs: require('..')});
+var model = require('immodel')
+  .use(require('immodel-base'), {attrs: require('..')});
 
 describe('attrs', function() {
   it('should work', function() {
