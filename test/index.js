@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var model = require('immodel').bootstrap({attrs: require('../')});
+var assert = require('assert');
+var model = require('immodel').bootstrap({attrs: require('..')});
 
 describe('attrs', function() {
   it('should work', function() {
@@ -8,14 +8,14 @@ describe('attrs', function() {
 
     var doc = new User();
     doc.get('username');
-    expect(doc.get('username')).to.equal('');
+    assert(doc.get('username') === '');
     
     doc.set('username', 'test');
-    expect(doc.get('username')).to.equal('test');
+    assert(doc.get('username') === 'test');
     
     doc.set('username', 1);
-    expect(doc.get('username')).to.not.equal(1);
-    expect(doc.get('username')).to.equal('1');
+    assert(doc.get('username') !== 1);
+    assert(doc.get('username') === '1');
   });
   
   it('should inherit', function() {
@@ -27,13 +27,13 @@ describe('attrs', function() {
     
     // Should inherit
     var doc = new Teacher();
-    expect(doc.get('username')).to.equal('');
-    expect(doc.get('class')).to.to.equal('');
+    assert(doc.get('username') === '');
+    assert(doc.get('class') === '');
     
     // Should not pollute the parent
     doc = new User();
-    expect(doc.get('username')).to.equal('');
-    expect(doc.get('class')).to.equal(undefined);
+    assert(doc.get('username') === '');
+    assert(doc.get('class') === undefined);
   });
   
   it('should nest', function() {
@@ -43,6 +43,7 @@ describe('attrs', function() {
       
     var doc = new User();
     doc.set('name.familyName', 'test');
-    expect(doc.get('name.familyName')).to.equal('test');
+
+    assert(doc.get('name.familyName') === 'test');
   });
 });
