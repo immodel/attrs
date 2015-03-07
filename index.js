@@ -28,7 +28,7 @@ module.exports = function(model) {
       if(name === '*') {
         // Iterate over all of the implicit attrs encompassed
         // by the wildcard attribute
-        Object.keys(self.doc || {}).forEach(function(name) {
+        Object.keys(self.value || {}).forEach(function(name) {
           if(! self.attrs[name]) {
             fn(name, type);
           }
