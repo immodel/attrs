@@ -1,6 +1,8 @@
+var series = require('series');
+
 module.exports = function() {
   this.attrs = this.attrs || {};
-  
+
   this.attr = function(name, type) {
     if(arguments.length === 1) {
       // Support wildcard attributes
@@ -11,16 +13,16 @@ module.exports = function() {
         this.attrs[name] = coerce(this, this.attrs[name]);
       return this.attrs[name];
     }
-    
+
     if('string' === typeof type)
       type = {type: type};
-    
+
     return this.use(function() {
       this.complex = true;
       this.attrs[name] = type;
     });
   };
-  
+
   this.eachAttr = function(fn) {
     var self = this;
     Object.keys(this.attrs).forEach(function(name) {
@@ -38,15 +40,27 @@ module.exports = function() {
       }
     });
   };
+
+  this.eachAttrAsync = function(fn, cb) {
+    var attrs = [];
+    this.eachAttr(function(name, type) {
+      attrs.push([name, type]);
+    });
+
+    series(attrs, function(tuple, next) {
+      fn(tuple[0], tuple[1], next);
+    }, cb);
+  };
 };
+
 
 function coerce(model, opts) {
   if(! opts) return;
-  
+
   type = model.is(opts.type)
     ? opts.type
     : model.lookup(opts.type);
-  
+
   if(! type) throw new Error('type "' + opts.type + '" has not been registered');
   delete opts.type;
   return type.use(opts);

@@ -26,6 +26,7 @@
     "immodel": "git://github.com/immodel/immodel"
   },
   "dependencies": {
-    "immodel-base": "git://github.com/immodel/base"
+    "immodel-base": "git://github.com/immodel/base",
+    "series": "git://github.com/ashaffer/series"
   }
 }
