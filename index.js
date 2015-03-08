@@ -1,27 +1,27 @@
-module.exports = function(model) {
-  model.attrs = model.attrs || {};
+module.exports = function() {
+  this.attrs = this.attrs || {};
   
-  model.attr = function(name, type) {
+  this.attr = function(name, type) {
     if(arguments.length === 1) {
       // Support wildcard attributes
       if(! this.attrs[name] && this.attrs['*'])
         name = '*';
-      
-      if(! model.is(this.attrs[name]))
-        this.attrs[name] = coerce(model, this.attrs[name]);
+
+      if(! this.is(this.attrs[name]))
+        this.attrs[name] = coerce(this, this.attrs[name]);
       return this.attrs[name];
     }
     
     if('string' === typeof type)
       type = {type: type};
     
-    return this.use(function(model) {
-      model.complex = true;
-      model.attrs[name] = type;
+    return this.use(function() {
+      this.complex = true;
+      this.attrs[name] = type;
     });
   };
   
-  model.eachAttr = function(fn) {
+  this.eachAttr = function(fn) {
     var self = this;
     Object.keys(this.attrs).forEach(function(name) {
       var type = self.attr(name);
