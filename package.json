@@ -1,6 +1,6 @@
 {
   "name": "immodel-attrs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Add attributes and complex types to immodel",
   "main": "index.js",
   "scripts": {
