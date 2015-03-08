@@ -6,9 +6,10 @@ module.exports = function() {
   this.attr = function(name, type) {
     if(arguments.length === 1) {
       // Support wildcard attributes
-      if(! this.attrs[name] && this.attrs['*'])
+      if(! this.attrs[name] && this.hasAttr('*'))
         name = '*';
 
+      name = '$' + name;
       if(! this.is(this.attrs[name]))
         this.attrs[name] = coerce(this, this.attrs[name]);
       return this.attrs[name];
@@ -19,29 +20,33 @@ module.exports = function() {
 
     return this.use(function() {
       this.complex = true;
-      this.attrs[name] = type;
+      this.attrs['$' + name] = type;
     });
   };
 
-  this.eachAttr = function(fn) {
-    var self = this;
-    Object.keys(this.attrs).forEach(function(name) {
-      var type = self.attr(name);
-      if(name === '*') {
-        // Iterate over all of the implicit attrs encompassed
-        // by the wildcard attribute
-        Object.keys(self.value || {}).forEach(function(name) {
-          if(! self.attrs[name]) {
-            fn(name, type);
-          }
-        });
-      } else {
-        fn(name, type);
-      }
-    });
+  this.hasAttr = function(name) {
+    return !! this.attrs['$' + name];
   };
 
-  this.eachAttrAsync = function(fn, cb) {
+  this.prototype.eachAttr = function(fn) {
+    var model = this.model;
+
+    Object.keys(model.attrs).forEach(function(name) {
+      name = name.slice(1);
+      if(name === '*') return;
+
+      fn(name, model.attr(name));
+    });
+
+    if(model.hasAttr('*')) {
+      Object.keys(this.value || {}).forEach(function(name) {
+        if(! model.hasAttr(name))
+          fn(name, model.attr(name));
+      });
+    }
+  };
+
+  this.prototype.eachAttrAsync = function(fn, cb) {
     var attrs = [];
     this.eachAttr(function(name, type) {
       attrs.push([name, type]);
