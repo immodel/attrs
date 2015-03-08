@@ -28,6 +28,52 @@ module.exports = function() {
     return !! this.attrs['$' + name];
   };
 
+  this.prototype.set = function(path, value) {
+    var idx = path.lastIndexOf('.');
+    if(idx !== -1) {
+      this.get(path.slice(0, idx)).set(path.slice(idx + 1), value);
+      return this;
+    }
+
+    this.value[path] = type.runSetters(value, this);
+    return this;
+  };
+
+  this.prototype.get = function(path) {
+    var idx = path.indexOf('.');
+    if(idx !== -1)
+      return this.get(path.slice(0, idx)).get(path.slice(idx + 1));
+
+    var type = this.model.attr(path);
+    var value = this.value[path];
+
+    // We should probably either throw an exception here or at least
+    // add a configuration option to do so
+    if(! type) return;
+
+    if(type.complex && ! is(value)) {
+      value = this.value[path] = new type(value);
+    }
+
+    return type.runGetters(value, this);
+  };
+
+  function is(value) {
+    return value && value.__isDocument;
+  }
+
+  this.prototype.toJSON = function() {
+    var value = this.value;
+    var json = {};
+
+    Object.keys(value).forEach(function(key) {
+      var val = value[key];
+      json[key] = is(val) ? val.toJSON() : val;
+    });
+
+    return json;
+  };
+
   this.prototype.eachAttr = function(fn) {
     var model = this.model;
 
