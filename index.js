@@ -1,4 +1,7 @@
 var series = require('series');
+var clone = require('clone');
+var isEmpty = require('isempty');
+var immodel = require('immodel');
 
 module.exports = function() {
   this.attrs = this.attrs || {};
@@ -6,12 +9,13 @@ module.exports = function() {
   this.attr = function(name, type) {
     if(arguments.length === 1) {
       // Support wildcard attributes
-      if(! this.attrs[name] && this.hasAttr('*'))
+      if(! this.hasAttr(name) && this.hasAttr('*'))
         name = '*';
 
       name = '$' + name;
-      if(! this.is(this.attrs[name]))
+      if(! this.is(this.attrs[name])) {
         this.attrs[name] = coerce(this, this.attrs[name]);
+      }
       return this.attrs[name];
     }
 
@@ -19,7 +23,17 @@ module.exports = function() {
       type = {type: type};
 
     return this.use(function() {
-      this.complex = true;
+      if(isEmpty(this.attrs)) {
+        this.on('init', function(evt) {
+          // Things that have attributes should have
+          // a default value of empty object if
+          // otherwise undefined
+          var doc = evt.doc;
+          if(doc.value === undefined)
+            doc.value = {};
+        });
+      }
+
       this.attrs['$' + name] = type;
     });
   };
@@ -28,15 +42,17 @@ module.exports = function() {
     return !! this.attrs['$' + name];
   };
 
-  this.prototype.set = function(path, value) {
-    var idx = path.lastIndexOf('.');
+  this.prototype.set = function(path, leafValue) {
+    var idx = path.indexOf('.');
     if(idx !== -1) {
-      this.get(path.slice(0, idx)).set(path.slice(idx + 1), value);
-      return this;
+      var first = path.slice(0, idx);
+      var rest = path.slice(idx + 1);
+      return this.set(path.slice(0, idx), this.get(first).set(rest, leafValue));
     }
 
-    this.value[path] = type.runSetters(value, this);
-    return this;
+    var value = clone(this.value, true, 1);
+    value[path] = leafValue;
+    return (new this.model(value));
   };
 
   this.prototype.get = function(path) {
@@ -45,30 +61,36 @@ module.exports = function() {
       return this.get(path.slice(0, idx)).get(path.slice(idx + 1));
 
     var type = this.model.attr(path);
-    var value = this.value[path];
 
     // We should probably either throw an exception here or at least
-    // add a configuration option to do so
-    if(! type) return;
+    // add a configuration option to do so.  For now, we return
+    // an instance of the base immodel type with undefined value
+    if(! type) return (new immodel());
 
-    if(type.complex && ! is(value)) {
-      value = this.value[path] = new type(value);
+    if(! type.isDocument(this.value[path])) {
+      this.value[path] = new type(this.value[path]);
     }
 
-    return type.runGetters(value, this);
+    return this.value[path];
   };
 
-  function is(value) {
+  this.isDocument = function(value) {
     return value && value.__isDocument;
-  }
+  };
 
   this.prototype.toJSON = function() {
     var value = this.value;
+    var model = this.model;
     var json = {};
+
+    if(isEmpty(this.attrs))
+      return value;
 
     Object.keys(value).forEach(function(key) {
       var val = value[key];
-      json[key] = is(val) ? val.toJSON() : val;
+      json[key] = model.isDocument(val)
+        ? val.toJSON()
+        : val;
     });
 
     return json;

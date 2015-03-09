@@ -26,7 +26,9 @@
     "immodel": "git://github.com/immodel/immodel"
   },
   "dependencies": {
+    "clone": "^1.0.1",
     "immodel-base": "git://github.com/immodel/base",
+    "isempty": "0.0.1",
     "series": "git://github.com/ashaffer/series"
   }
 }
